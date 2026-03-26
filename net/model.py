@@ -164,13 +164,8 @@ class TransformerBlock(nn.Module):
         return x
 
 ##########################################################################
-## 混合专家模型(MoE)组件 DeepSeekMoE Implementation (Shared + Routed Experts)
+## 混合专家模型(MoE)组件
 class BasicExpert(nn.Module):
-    """
-    基础专家模块。
-    假设输入是 (B, C, H, W)，使用卷积处理保持空间维度。
-    如果你原来的 Expert 结构不同（比如全是 MLP），请替换这里的实现。
-    """
     def __init__(self, dim):
         super(BasicExpert, self).__init__()
         self.net = nn.Sequential(
@@ -183,14 +178,9 @@ class BasicExpert(nn.Module):
         return self.net(x)
 
 class DeepSeekGate(nn.Module):
-    """
-    DeepSeek 风格门控：只对 Routed Experts 进行 Top-K 选择。
-    """
     def __init__(self, dim, num_routed_experts, k_routed):
         super(DeepSeekGate, self).__init__()
         self.k_routed = k_routed
-        # 门控网络：将输入特征映射到专家分值
-        # 输入 (B, C, H, W) -> 池化 -> (B, C) -> Linear -> (B, num_routed)
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.gate_fc = nn.Linear(dim, num_routed_experts)
 
@@ -198,81 +188,47 @@ class DeepSeekGate(nn.Module):
         # x: (B, C, H, W)
         b, c, h, w = x.shape
         
-        # 计算全局特征用于路由 (B, C)
         feat = self.gap(x).view(b, c)
         
-        # 计算路由专家的分数 (B, num_routed)
         logits = self.gate_fc(feat)
         
-        # Top-K 选择
-        # topk_indices: (B, k)
         topk_scores, topk_indices = torch.topk(logits, self.k_routed, dim=1)
-        
-        # Softmax 归一化权重 (仅在选中的专家之间归一化)
+
         topk_weights = F.softmax(topk_scores, dim=1)
         
         return topk_weights, topk_indices, logits
 
 class DeepSeekMoE(nn.Module):
     def __init__(self, dim, num_experts=5, k_routed=2, num_shared=1):
-        """
-        Args:
-            dim: 输入通道数
-            num_experts: 路由专家(Routed Experts)的总数量 (注意：这里指可动态选择的专家数)
-            k_routed: 每次选择的路由专家数量 (Top-K)
-            num_shared: 共享专家(Shared Experts)的数量 (总是激活)
-        """
         super(DeepSeekMoE, self).__init__()
         self.dim = dim
-        self.num_experts = num_experts # 这是 Routed Experts 的数量
+        self.num_experts = num_experts
         self.k_routed = k_routed
         self.num_shared = num_shared
         
-        # 1. 共享专家 (Shared Experts) - 总是被激活
         self.shared_experts = nn.ModuleList([
             BasicExpert(dim) for _ in range(num_shared)
         ])
         
-        # 2. 路由专家 (Routed Experts) - 动态选择
         self.routed_experts = nn.ModuleList([
             BasicExpert(dim) for _ in range(num_experts)
         ])
         
-        # 3. 门控网络 (只控制路由专家)
         self.gate = DeepSeekGate(dim, num_experts, k_routed)
 
     def forward(self, x):
         # x: (B, C, H, W)
         b, c, h, w = x.shape
 
-        # ===========================
-        # 1. 计算共享专家输出 (Shared)
-        # ===========================
         shared_out = 0
         for expert in self.shared_experts:
             shared_out = shared_out + expert(x)
-        # 如果有多个共享专家，可以选择取平均或求和，DeepSeek通常是求和
-        
-        # ===========================
-        # 2. 计算路由专家输出 (Routed)
-        # ===========================
-        # 路由权重: (B, k), 索引: (B, k)
         routing_weights, routing_indices, all_logits = self.gate(x)
         
-        # 准备收集选中的专家输出
-        # output 初始化为 shared_out
         final_output = shared_out 
-        
-        # 收集用于 Orthogonal Loss 的特征
-        # 逻辑：只收集所有 Routed Experts 的输出特征，看它们是否正交
-        # 为了效率，我们只计算被选中的专家，或者简单地为了Loss计算所有专家的特征(训练时)
-        # 为了保证 loss_utils 通用性，这里我们计算所有 Routed Expert 的特征用于 Loss
-        # (注意：这会增加计算量。如果显存紧张，可以只返回选中的。但在 MoE 训练中，通常需要所有专家的特征来计算负载均衡或正交)
         
         expert_feats_for_loss = []
         
-        # 计算所有 Routed Experts 的特征 (用于 Loss)
-        # 也可以优化为只计算 Top-K，但为了 Orthogonal Loss 能约束所有专家多样性，建议计算所有
         routed_expert_outputs = []
         for i in range(self.num_experts):
             out = self.routed_experts[i](x)
@@ -281,8 +237,6 @@ class DeepSeekMoE(nn.Module):
             
         expert_feats_stack = torch.stack(expert_feats_for_loss, dim=1) # (B, N_routed, C, H, W)
 
-        # 加权融合 Top-K 路由专家
-        # 遍历 Batch 中的每个样本
         routed_out = torch.zeros_like(x)
         for b_idx in range(b):
             for k_idx in range(self.k_routed):
@@ -291,12 +245,8 @@ class DeepSeekMoE(nn.Module):
                 # 累加: weight * Expert_output
                 routed_out[b_idx] += weight * routed_expert_outputs[idx][b_idx]
         
-        # ===========================
-        # 3. 最终融合
-        # ===========================
         final_output = final_output + routed_out
         
-        # 返回: 融合后的特征, 所有路由专家的特征(用于正交Loss)
         return final_output, expert_feats_stack, routing_indices
 
 ##########################################################################
@@ -502,7 +452,7 @@ class FreModule(nn.Module):
 class TaskEmbedding(nn.Module):
     def __init__(self, num_tasks, embed_dim, feat_h, feat_w):
         super(TaskEmbedding, self).__init__()
-        self.embedding = nn.Embedding(num_tasks, embed_dim)  # 任务嵌入向量
+        self.embedding = nn.Embedding(num_tasks, embed_dim)
         self.mlp = nn.Sequential(
             nn.Linear(embed_dim, embed_dim * 4),
             nn.GELU(),
@@ -518,12 +468,8 @@ class TaskEmbedding(nn.Module):
         emb = self.mlp(emb)  # [B, embed_dim*H*W]
         emb = emb.view(-1, self.embed_dim, self.feat_h, self.feat_w)  # [B, C, H, W]
         return emb
-    
-    # zhj 2025.8.2 添加
+
     def get_embedding(self, task_ids):
-        """
-        返回每个任务的嵌入向量，用于 TaskAwareModulation
-        """
         return self.embedding(task_ids)  # [B, task_dim]
 
 ##########################################################################
@@ -531,16 +477,14 @@ class TaskEmbedding(nn.Module):
 class TaskAwareModulation(nn.Module):
     def __init__(self, task_dim, feat_channels, reduction=16):
         super().__init__()
-        self.fc1 = nn.Linear(task_dim, feat_channels // reduction)  # 压缩维度
+        self.fc1 = nn.Linear(task_dim, feat_channels // reduction)
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(feat_channels // reduction, 2 * feat_channels)
 
     def forward(self, features, task_embed):
-        # task_embed 形状：[B, task_dim]（48）
         x = self.relu(self.fc1(task_embed))  # [B, feat_channels//reduction] → [B, 96//16=6]
         x = self.fc2(x)  # [B, 2*feat_channels] → [B, 192]（96*2）
         scale, bias = x.chunk(2, dim=1)  # 各为 [B, 96]
-        # 扩展为 [B, 96, 1, 1]，与特征图广播匹配
         scale = scale.unsqueeze(-1).unsqueeze(-1)
         bias = bias.unsqueeze(-1).unsqueeze(-1)
         return features * (1 + scale) + bias
@@ -563,17 +507,15 @@ class AdaIR(nn.Module):
                  num_tasks=5,
                  task_embed_dim=48,
                  task_embed_size=(128,128),
-                 # 新增MoE参数
-                 num_experts=5,        # GSN和SP两个专家
-                 expert_layers=2,      # 每个专家的Transformer层数
-                 k_experts=1           # 选择top-1专家
+                 num_experts=5,
+                 expert_layers=2,
+                 k_experts=1
                 ):
         super(AdaIR, self).__init__()
 
         self.patch_embed = OverlapPatchEmbed(inp_channels, dim)
         self.decoder = decoder
 
-        # 任务嵌入模块
         self.task_embed = TaskEmbedding(num_tasks, task_embed_dim, task_embed_size[0], task_embed_size[1])
 
         if self.decoder:
@@ -594,7 +536,7 @@ class AdaIR(nn.Module):
         
         self.task_mod2 = TaskAwareModulation(
             task_dim=task_embed_dim, 
-            feat_channels=dim * 2  # encoder_level2 的输出通道
+            feat_channels=dim * 2
         )
         
 
@@ -605,13 +547,12 @@ class AdaIR(nn.Module):
         ])
 
 
-        # MoE模块（替换原latent层）
-        self.down3_4 = Downsample(dim*4)  # 降至dim*8
+        self.down3_4 = Downsample(dim*4)
         self.moe = DeepSeekMoE(
-            dim=dim*8,           # 输入通道数
-            num_experts=num_experts, # 路由专家数量 (来自 options)
-            k_routed=k_experts,      # Top-K (来自 options)
-            num_shared=1                  # 共享专家数量 (建议设为 1 或 2)
+            dim=dim*8,
+            num_experts=num_experts,
+            k_routed=k_experts,
+            num_shared=1
         )
 
         self.up4_3 = Upsample(dim*8)
@@ -642,7 +583,6 @@ class AdaIR(nn.Module):
         self.output = nn.Conv2d(dim*2, out_channels, kernel_size=3, stride=1, padding=1, bias=bias)
 
     def forward(self, inp_img, task_ids=None, return_feat=False, return_usage=False):
-        # ✅ 新增return_usage=False，带默认值，不影响原有训练/推理
 
         inp_enc_level1 = self.patch_embed(inp_img)  # [B, C, H, W]
 
@@ -663,7 +603,6 @@ class AdaIR(nn.Module):
         out_enc_level3 = self.encoder_level3(inp_enc_level3)
         inp_enc_level4 = self.down3_4(out_enc_level3)
 
-        # ✅ 适配MoE层新返回值：latent(融合特征), expert_feats(所有专家特征), indices(选中的专家索引)
         latent, expert_feats, indices = self.moe(inp_enc_level4)
 
         if self.decoder:
@@ -690,15 +629,10 @@ class AdaIR(nn.Module):
         out_dec_level1 = self.decoder_level1(inp_dec_level1)
 
         out_dec_level1 = self.refinement(out_dec_level1)
-        # 恢复图：out_dec_level1（最终输出）
         restored_img = self.output(out_dec_level1) + inp_img
 
-        # ✅ 核心逻辑：根据参数决定返回值
         if return_usage:
-            # 分析脚本需要的三个值：恢复图、专家特征、专家索引
             return restored_img, expert_feats, indices
         elif return_feat:
-            # 保留原有return_feat的逻辑，不改动
             return restored_img, out_enc_level3, expert_feats
-        # 原有默认逻辑，只返回恢复图
         return restored_img
