@@ -25,21 +25,12 @@ class UniqueCheckpoint(ModelCheckpoint):
     def state_key(self):
         return f"ModelCheckpoint_{self.unique_id}"
 
-# ==========================================
-# 1. 自定义 Callback：双日志系统 (全局备份 + 当前阶段绘图)
-# ==========================================
 class LossLoggerCallback(Callback):
     def __init__(self, 
                  global_filename="all_tasks_loss_history.txt", 
                  current_filename="current_stage_loss.txt", 
                  log_every_n_steps=50, 
                  task_suffix=""):
-        """
-        Args:
-            global_filename: 全局日志文件名 (只追加，不清空)
-            current_filename: 当前阶段日志文件名 (每次训练开始时清空，用于画图)
-            task_suffix: 用于生成图片文件名的后缀 (例如 "gsn")
-        """
         super().__init__()
         self.global_filename = global_filename
         self.current_filename = current_filename
@@ -51,7 +42,6 @@ class LossLoggerCallback(Callback):
         self.current_path = None
 
     def _setup_paths(self, trainer):
-        """辅助函数：初始化保存路径"""
         if self.save_dir is None:
             try:
                 if hasattr(trainer.logger, 'save_dir') and trainer.logger.save_dir:
@@ -67,22 +57,11 @@ class LossLoggerCallback(Callback):
         self.current_path = os.path.join(self.save_dir, self.current_filename)
 
     def on_train_start(self, trainer, pl_module):
-        """
-        关键逻辑：训练开始时，清空【当前阶段日志】，但保留【全局日志】
-        """
         self._setup_paths(trainer)
-        
-        # 确保目录存在
         os.makedirs(os.path.dirname(self.current_path), exist_ok=True)
-        
-        # 1. 清空当前阶段日志 (mode='w')
-        print(f"🧹 [LossLogger] 正在清空当前阶段日志: {self.current_path}")
         with open(self.current_path, "w") as f:
             f.write("") 
             
-        # 2. 全局日志不需要清空，这里只是确认一下路径
-        print(f"📂 [LossLogger] 全局历史记录将保存在: {self.global_path}")
-
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx):
         if batch_idx % self.log_every_n_steps == 0:
             if self.current_path is None:
@@ -91,8 +70,6 @@ class LossLoggerCallback(Callback):
             metrics = trainer.callback_metrics
             current_step = trainer.global_step
             
-            # 构造日志信息
-            # 增加 Task 标记方便在全局日志中区分
             log_parts = [
                 f"Task: {self.task_suffix}",
                 f"Step: {current_step}", 
@@ -103,12 +80,10 @@ class LossLoggerCallback(Callback):
                 log_parts.append(f"Total: {metrics['gen_total_loss'].item():.6f}")
             if "gen_rec_loss" in metrics:
                 log_parts.append(f"Rec: {metrics['gen_rec_loss'].item():.6f}")
-            # [新增] 频域损失
             if "gen_fft_loss" in metrics:
                 log_parts.append(f"FFT: {metrics['gen_fft_loss'].item():.6f}")
             if "ortho_loss" in metrics:
                 log_parts.append(f"Ortho: {metrics['ortho_loss'].item():.6f}")
-            # [新增] 引导损失
             if "guide_loss" in metrics:
                 log_parts.append(f"Guide: {metrics['guide_loss'].item():.6f}")
             
@@ -119,31 +94,22 @@ class LossLoggerCallback(Callback):
 
             log_str = " | ".join(log_parts) + "\n"
 
-            # === 写入两个文件 ===
-            # 1. 写入全局日志 (追加模式)
             with open(self.global_path, "a") as f:
                 f.write(log_str)
             
-            # 2. 写入当前日志 (追加模式)
             with open(self.current_path, "a") as f:
                 f.write(log_str)
 
     def on_train_end(self, trainer, pl_module):
-        """训练结束后，使用【当前阶段日志】进行绘图"""
         if self.current_path and os.path.exists(self.current_path):
-            # 图片文件名加上后缀，防止覆盖
             img_name = f"loss_visualization_{self.task_suffix}.png"
             output_img_path = os.path.join(os.path.dirname(self.current_path), img_name)
 
-            print(f"🚀 正在基于【当前阶段日志】生成图表... 保存路径: {output_img_path}")
-            # 注意：这里传入的是 self.current_path
             self.draw_loss_curves(self.current_path, output_img_path)
 
     def draw_loss_curves(self, log_path, output_path):
         if not os.path.exists(log_path):
-            print("未找到日志文件，跳过绘图。")
             return
-
         data = {} 
         steps = []
 
@@ -158,7 +124,6 @@ class LossLoggerCallback(Callback):
                     key, val = part.split(":")
                     key = key.strip()
                     try:
-                        # 跳过 Task 字段的解析，因为它不是数值
                         if key == "Task": continue
                         val = float(val.strip())
                         row_data[key] = val
@@ -209,12 +174,7 @@ class LossLoggerCallback(Callback):
         plt.tight_layout()
         plt.savefig(output_path, dpi=150)
         plt.close()
-        print(f"✅ Loss 图像已保存至: {output_path}")
 
-
-# ==========================================
-# 2. 模型定义 (保持不变)
-# ==========================================
 class AdaIRModel(pl.LightningModule):
     def __init__(self, pretrained_ckpt=None, freeze_encoder=False):
         super().__init__()
@@ -233,7 +193,6 @@ class AdaIRModel(pl.LightningModule):
         self.guidance_loss_weight = getattr(opt, 'guidance_loss_weight', 0.1)
         
         if freeze_encoder:
-            print("启用冻结机制，冻结比例 =", opt.freeze_ratio)
             self.freeze_encoder_layers(freeze_ratio=opt.freeze_ratio)
         
         if pretrained_ckpt is not None:
@@ -253,14 +212,6 @@ class AdaIRModel(pl.LightningModule):
         ckpt = torch.load(ckpt_path, map_location='cpu')
         state_dict = ckpt.get('state_dict', ckpt)
         self.net.load_state_dict(state_dict, strict=False)
-
-        # for task in self.old_tasks:
-        #     if task in self.task_id_map:
-        #         expert_idx = self.task_id_map[task]
-        #         if expert_idx < len(self.net.moe.experts):
-        #             for param in self.net.moe.experts[expert_idx].parameters():
-        #                 param.requires_grad = False
-        #             print(f"Frozen expert for task: {task}")
 
     def training_step(self, batch, batch_idx):
         ([clean_name, de_id, task_id], degrad_patch, clean_patch) = batch
@@ -334,7 +285,6 @@ class AdaIRModel(pl.LightningModule):
                 mask = (domain_labels == task_id)
                 if not torch.any(mask): continue
 
-                # 提取对应专家的特征和对应的退化图
                 if task_id == 0: 
                     expert_idx = 0; feat = expert_feats[:, expert_idx][mask]; degenerate = gaussian_noise[mask].flatten(1)
                 elif task_id == 1: 
@@ -348,11 +298,9 @@ class AdaIRModel(pl.LightningModule):
                 else:
                     continue 
 
-                # 特征处理
                 feat_pooled = torch.nn.functional.adaptive_avg_pool2d(feat, (1, 1))
                 feat_flat = feat_pooled.flatten(1)
 
-                # 投影矩阵处理 (保持你原来的逻辑)
                 proj_dim = 512
                 proj_key = f"proj_matrix_{task_id}"
                 if not hasattr(self, proj_key):
@@ -379,12 +327,10 @@ class AdaIRModel(pl.LightningModule):
                 guidance_loss_sum += current_guide_loss
                 guidance_count += 1
                 
-        # 计算平均 Guidance Loss
         guide_loss = guidance_loss_sum / guidance_count if guidance_count > 0 else torch.tensor(0.0, device=self.device)
         
         cur_guide_weight = self.guidance_loss_weight if self.current_epoch < 50 else self.guidance_loss_weight * 0.1
 
-        # === 4. 总损失求和 ===
         gen_total_loss = rec_loss + \
                          (self.orthogonal_loss_weight * ortho_loss) + \
                          (cur_guide_weight * guide_loss)
@@ -398,8 +344,6 @@ class AdaIRModel(pl.LightningModule):
         optimizer.zero_grad()
         self.manual_backward(gen_total_loss)
         
-        # ✅ [新增] 手动梯度裁剪
-        # 注意：这里直接使用 opt.grad_clip_val，确保文件头部已经 import options as opt
         if hasattr(opt, 'grad_clip_val') and opt.grad_clip_val > 0:
             self.clip_gradients(optimizer, gradient_clip_val=opt.grad_clip_val, gradient_clip_algorithm="norm")
         
@@ -432,9 +376,7 @@ class AdaIRModel(pl.LightningModule):
                 for param in module.parameters():
                     param.requires_grad = False
 
-# ==========================================
-# 3. 主程序
-# ==========================================
+
 def main():
     print("Options")
     print(opt)
@@ -467,8 +409,6 @@ def main():
     else:
         experiment_name = current_task
 
-    print(f"🚀 本次训练保存的模型名称将为: {experiment_name}-last.ckpt")
-    print(f"   历史: {experiment_name}-epochXX.ckpt (保存所有Epoch)")
     checkpoint_last = UniqueCheckpoint(
         unique_id="last",
         dirpath=opt.ckpt_dir,
@@ -479,28 +419,24 @@ def main():
         save_last=False
     )
     
-    # 2. 保存【最佳】的模型 (Best)
-    # 逻辑：监控 gen_total_loss_epoch，只保存 Loss 最小的那一个
     checkpoint_history = UniqueCheckpoint(
         unique_id="history",
         dirpath=opt.ckpt_dir,
-        filename=f"{experiment_name}-{{epoch:02d}}", # 自动填入 epoch
+        filename=f"{experiment_name}-{{epoch:02d}}",
         every_n_epochs=1,
-        save_top_k=-1,        # <--- 关键：保存所有模型，不删除旧的
-        monitor=None,         # 不监控指标，仅仅按时间保存
+        save_top_k=-1,
+        monitor=None,
         save_last=False
     )
     
-    # 构造任务字符串
     if isinstance(opt.de_type, list):
         task_suffix = "_".join(opt.de_type)
     else:
         task_suffix = str(opt.de_type)
 
-    # === 修改处：双日志文件设置 ===
     loss_logger = LossLoggerCallback(
-        global_filename="all_tasks_loss_history.txt", # 这个文件永远不会删，一直追加
-        current_filename="current_stage_loss.txt",    # 这个文件每次启动都会被清空，只记本次的
+        global_filename="all_tasks_loss_history.txt",
+        current_filename="current_stage_loss.txt",
         log_every_n_steps=50,
         task_suffix=task_suffix  
     )
