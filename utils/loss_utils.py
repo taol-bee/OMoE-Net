@@ -66,12 +66,8 @@ class OrthogonalLoss(nn.Module):
                 normalized_i = feat_i / norm_i
                 normalized_j = feat_j / norm_j
                 
-                # 计算通道相似度 [B, C]
                 channel_similarity = torch.sum(normalized_i * normalized_j, dim=2)
-                
-                # === 关键修改 ===
-                # 原来: mean -> square (导致正负抵消，值极小)
-                # 现在: square -> mean (强制每个通道正交，值恢复正常量级)
+            
                 total_loss += torch.mean(torch.square(channel_similarity))
                 count += 1
         
@@ -85,11 +81,9 @@ class FrequencyLoss(nn.Module):
         self.criterion = nn.L1Loss()
 
     def forward(self, pred, target):
-        # 转换到频域
         pred_fft = torch.fft.rfft2(pred, norm='backward')
         target_fft = torch.fft.rfft2(target, norm='backward')
         
-        # 计算频域的 L1 距离 (实部+虚部)
         loss = self.criterion(torch.view_as_real(pred_fft), torch.view_as_real(target_fft))
         return self.loss_weight * loss
     
