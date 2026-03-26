@@ -21,7 +21,6 @@ class OfflineMixedTrainDataset(Dataset):
         self.patch_size = args.patch_size
         self.toTensor = ToTensor()
 
-        # 任务ID映射（固定所有支持的任务）
         self.task2id = {
             'gsn': 0, 'sp': 1, 'jpeg': 2, 
             'gb': 3, 'mb': 4
@@ -49,7 +48,7 @@ class OfflineMixedTrainDataset(Dataset):
 
 
         self.image_names = self._load_valid_image_names()
-        self._check_degraded_files()  # 验证退化图像存在性
+        self._check_degraded_files()
 
     def _extract_old_tasks_from_ckpt(self, ckpt_path):
 
@@ -92,7 +91,6 @@ class OfflineMixedTrainDataset(Dataset):
             if not f.lower().endswith(('.png', '.jpg', '.jpeg')):
                 continue
             name_no_ext = os.path.splitext(f)[0]
-            # 检查该图像是否至少有一个任务的退化图
             has_valid_degraded = False
             for task in self.all_tasks:
                 degraded_name = name_no_ext + self.degradation_suffixes[task]
@@ -121,24 +119,19 @@ class OfflineMixedTrainDataset(Dataset):
         name_no_ext = os.path.splitext(base_name)[0]
         clean_path = os.path.join(self.gt_dir, base_name)
 
-        # 按概率选择任务（新任务0.8 + 旧任务0.2）
         selected_task = random.choices(self.all_tasks, weights=self.task_probs, k=1)[0]
 
-        # 加载退化图像和干净图像
         suffix = self.degradation_suffixes[selected_task]
         degraded_path = os.path.join(self.lr_dir, name_no_ext + suffix)
         clean_img = Image.open(clean_path).convert('RGB')
         degraded_img = Image.open(degraded_path).convert('RGB')
 
-        # 确保尺寸一致
         assert clean_img.size == degraded_img.size, \
             f"尺寸不匹配: {clean_path} ({clean_img.size}) vs {degraded_path} ({degraded_img.size})"
 
-        # 随机裁剪
         w, h = clean_img.size
         ps = self.patch_size
         if w < ps or h < ps:
-            # 若图像小于patch_size，先resize
             clean_img = clean_img.resize((ps, ps), Image.BILINEAR)
             degraded_img = degraded_img.resize((ps, ps), Image.BILINEAR)
             left, top = 0, 0
@@ -148,20 +141,18 @@ class OfflineMixedTrainDataset(Dataset):
         clean_crop = clean_img.crop((left, top, left + ps, top + ps))
         degraded_crop = degraded_img.crop((left, top, left + ps, top + ps))
 
-        # 数据增强 + 转Tensor
         clean_np, degraded_np = random_augmentation(np.array(clean_crop), np.array(degraded_crop))
         clean_tensor = self.toTensor(clean_np)
         degraded_tensor = self.toTensor(degraded_np)
 
         task_id = self.task2id[selected_task]
 
-        # === 关键修改：返回字典格式，包含 task_id ===
         return {
             'LR': degraded_tensor,
             'HR': clean_tensor,
-            'task_id': task_id,        # 用于 Hard Routing 的索引
-            'filename': name_no_ext,   # 可选，方便调试
-            'de_type': selected_task   # 可选，方便调试
+            'task_id': task_id,
+            'filename': name_no_ext,
+            'de_type': selected_task
         }
 
     
