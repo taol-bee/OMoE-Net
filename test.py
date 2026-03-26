@@ -11,13 +11,13 @@ import lightning.pytorch as pl
 from utils.dataset_utils import OfflineMixedTestDataset 
 from utils.val_utils import AverageMeter, compute_psnr_ssim
 from utils.image_io import save_image_tensor
-from net.model import AdaIR
+from net.model import OMoE-Net
 
 
-class AdaIRModel(pl.LightningModule):
+class OMoE-NetModel(pl.LightningModule):
     def __init__(self, num_experts=5):
         super().__init__()
-        self.net = AdaIR(decoder=True, num_experts=num_experts)
+        self.net = OMoE-Net(decoder=True, num_experts=num_experts)
     
     def forward(self, x):
         return self.net(x)
@@ -93,8 +93,8 @@ if __name__ == "__main__":
     parser.add_argument('--de_types', nargs='+', default=['gsn', 'gb', 'sp', 'mb', 'jpeg'],
                         help='Task list，示例：--de_types gsn jpeg sp')
     parser.add_argument('--offline_dir', type=str, required=True, help='离线数据目录（含HR和LR子目录）')
-    parser.add_argument('--output_path', type=str, default='AdaIR_results/', help='结果保存目录')
-    parser.add_argument('--ckpt_name', type=str, required=True, help='模型权重文件路径，如 ./ckpt/adair.ckpt')
+    parser.add_argument('--output_path', type=str, default='OMoE-Net_results/', help='结果保存目录')
+    parser.add_argument('--ckpt_name', type=str, required=True, help='模型权重文件路径，如 ./ckpt/OMoE-Net.ckpt')
     parser.add_argument('--save_images', action='store_true', help='是否保存输出图像')
     parser.add_argument('--log_file', type=str, default=None, help='保存结果的txt文件路径') # 新增
     
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     ckpt_tasks = get_tasks_from_ckpt(args.ckpt_name)
     num_experts = len(ckpt_tasks) if ckpt_tasks else len(args.de_types)
 
-    net = AdaIRModel(num_experts=num_experts)
+    net = OMoE-NetModel(num_experts=num_experts)
     net = net.load_from_checkpoint(args.ckpt_name, num_experts=num_experts, strict=False)
     net = net.to(device)
     net.eval()
