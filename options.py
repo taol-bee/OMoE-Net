@@ -24,15 +24,15 @@ parser.add_argument('--gopro_dir', type=str, default='data/Train/Deblur/',
 parser.add_argument('--enhance_dir', type=str, default='data/Train/Enhance/',
                     help='where clean images of denoising saves.')
 parser.add_argument('--superres_dir', type=str, default='data/Train/Superres/',
-                    help='Super-resolution dataset directory with subfolders low/ and gt/') # 2025.7.14 zhj添加下采样 确认参数解析部分是否支持 superres 所需参数
+                    help='Super-resolution dataset directory with subfolders low/ and gt/')
 parser.add_argument('--jpeg_dir', type=str, default='data/Train/Jpeg/',
-                    help='where JPEG compressed and gt images are stored') # 2025.7.14 zhj添加下采样 确认参数解析部分是否支持 jpeg 所需参数
+                    help='where JPEG compressed and gt images are stored')
 parser.add_argument('--derain_dir', type=str, default='data/Train/Derain/',
                     help='where training images of deraining saves.')
 parser.add_argument('--dehaze_dir', type=str, default='data/Train/Dehaze/',
                     help='where training images of dehazing saves.')
-parser.add_argument('--use_offline_dataset', action='store_true', help='Use offline degraded dataset') # 2025.7.16 zhj修改
-parser.add_argument('--offline_dir', type=str, default='data/Train/', help='Root directory for HR and LR') # 2025.7.16 zhj修改
+parser.add_argument('--use_offline_dataset', action='store_true', help='Use offline degraded dataset')
+parser.add_argument('--offline_dir', type=str, default='data/Train/', help='Root directory for HR and LR')
 parser.add_argument('--output_path', type=str, default="output/", help='output save path')
 parser.add_argument('--ckpt_path', type=str, default="ckpt/Denoise/", help='checkpoint save path')
 parser.add_argument("--wblogger",type=str,default="AdaIR",help = "Determine to log to wandb or not and the project name")
