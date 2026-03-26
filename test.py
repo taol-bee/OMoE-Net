@@ -24,9 +24,7 @@ class AdaIRModel(pl.LightningModule):
 
 
 def get_tasks_from_ckpt(ckpt_path):
-    """从checkpoint文件名解析训练时的任务，推断专家数量"""
     base = os.path.basename(ckpt_path)
-    # 匹配文件名中类似 "gsn_sp_jpeg-last.ckpt" 的任务部分
     match = re.search(r"^([a-z_]+)-epoch", base)
     if not match:
         return []
@@ -58,23 +56,19 @@ def test_MultiTask(net, dataset, de_types, output_path_base, save_images, log_fi
             de_type = de_task_list[i]
             if de_type not in de_types:
                 continue
-            # 计算指标（确保输入是4D张量：[1, C, H, W]）
             temp_psnr, temp_ssim, N = compute_psnr_ssim(restored[i:i+1], clean_imgs[i:i+1])
             psnr_meters[de_type].update(temp_psnr, N)
             ssim_meters[de_type].update(temp_ssim, N)
 
-            # 保存恢复图像
             if save_images:
                 out_dir = os.path.join(output_path_base, de_type)
                 os.makedirs(out_dir, exist_ok=True)
                 save_image_tensor(restored[i], os.path.join(out_dir, f"{names[i]}_{de_type}.png"))
 
-    # --- 结果打印与记录 ---
     print(f"\nModel: {os.path.basename(ckpt_name)}")
     
     log_content = []
     log_content.append(f"Model: {os.path.basename(ckpt_name)}")
-    # log_content.append(f"Date: {time.strftime('%Y-%m-%d %H:%M:%S')}") # 可选：记录时间
     
     for de_type in de_types:
         res_str = f"[{de_type}] PSNR: {psnr_meters[de_type].avg:.4f}, SSIM: {ssim_meters[de_type].avg:.4f}"
@@ -97,7 +91,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--cuda', type=int, default=0)
     parser.add_argument('--de_types', nargs='+', default=['gsn', 'gb', 'sp', 'mb', 'jpeg'],
-                        help='测试任务列表，示例：--de_types gsn jpeg sp')
+                        help='Task list，示例：--de_types gsn jpeg sp')
     parser.add_argument('--offline_dir', type=str, required=True, help='离线数据目录（含HR和LR子目录）')
     parser.add_argument('--output_path', type=str, default='AdaIR_results/', help='结果保存目录')
     parser.add_argument('--ckpt_name', type=str, required=True, help='模型权重文件路径，如 ./ckpt/adair.ckpt')
@@ -106,22 +100,16 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    # 设备设置
     device = torch.device(f'cuda:{args.cuda}' if (torch.cuda.is_available() and args.cuda >= 0) else 'cpu')
 
-    # 1. 从checkpoint文件名解析训练时的任务，确定专家数量
     ckpt_tasks = get_tasks_from_ckpt(args.ckpt_name)
     num_experts = len(ckpt_tasks) if ckpt_tasks else len(args.de_types)
-    print(f"解析到训练任务: {ckpt_tasks}，专家数量: {num_experts}")
 
-    # 2. 加载模型（使用与训练时一致的专家数量）
     net = AdaIRModel(num_experts=num_experts)
-    net = net.load_from_checkpoint(args.ckpt_name, num_experts=num_experts, strict=False)  # 传入专家数量
+    net = net.load_from_checkpoint(args.ckpt_name, num_experts=num_experts, strict=False)
     net = net.to(device)
     net.eval()
 
-    # 3. 加载测试集
     dataset = OfflineMixedTestDataset(args.offline_dir, de_types=args.de_types)
 
-    # 4. 执行测试
     test_MultiTask(net, dataset, args.de_types, args.output_path, args.save_images, log_file=args.log_file, ckpt_name=args.ckpt_name)
