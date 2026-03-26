@@ -164,7 +164,7 @@ class TransformerBlock(nn.Module):
         return x
 
 ##########################################################################
-## 混合专家模型(MoE)组件
+## Degradation-Aware Path Controlle(DAPC)
 class BasicExpert(nn.Module):
     def __init__(self, dim):
         super(BasicExpert, self).__init__()
@@ -198,9 +198,9 @@ class DeepSeekGate(nn.Module):
         
         return topk_weights, topk_indices, logits
 
-class DeepSeekMoE(nn.Module):
+class DAPC(nn.Module):
     def __init__(self, dim, num_experts=5, k_routed=2, num_shared=1):
-        super(DeepSeekMoE, self).__init__()
+        super(DAPC, self).__init__()
         self.dim = dim
         self.num_experts = num_experts
         self.k_routed = k_routed
@@ -491,8 +491,8 @@ class TaskAwareModulation(nn.Module):
 
     
 ##########################################################################
-##---------- AdaIR -----------------------
-class AdaIR(nn.Module):
+##---------- OMoE-Net -----------------------
+class OMoE-Net(nn.Module):
     def __init__(self, 
                  inp_channels=3, 
                  out_channels=3, 
@@ -511,7 +511,7 @@ class AdaIR(nn.Module):
                  expert_layers=2,
                  k_experts=1
                 ):
-        super(AdaIR, self).__init__()
+        super(OMoE-Net, self).__init__()
 
         self.patch_embed = OverlapPatchEmbed(inp_channels, dim)
         self.decoder = decoder
@@ -548,7 +548,7 @@ class AdaIR(nn.Module):
 
 
         self.down3_4 = Downsample(dim*4)
-        self.moe = DeepSeekMoE(
+        self.moe = DAPC(
             dim=dim*8,
             num_experts=num_experts,
             k_routed=k_experts,
