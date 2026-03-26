@@ -4,7 +4,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from utils.dataset_utils import OfflineMixedTrainDataset
-from net.model import AdaIR
+from net.model import OMoE-Net
 from utils.schedulers import LinearWarmupCosineAnnealingLR
 import numpy as np
 import wandb
@@ -175,7 +175,7 @@ class LossLoggerCallback(Callback):
         plt.savefig(output_path, dpi=150)
         plt.close()
 
-class AdaIRModel(pl.LightningModule):
+class OMoE-NetModel(pl.LightningModule):
     def __init__(self, pretrained_ckpt=None, freeze_encoder=False):
         super().__init__()
         self.automatic_optimization = False
@@ -187,7 +187,7 @@ class AdaIRModel(pl.LightningModule):
         self.all_tasks = list(dict.fromkeys(self.current_tasks + self.old_tasks))
         self.task_id_map = {task: self.task2id[task] for task in self.all_tasks}
         self.num_experts = len(self.all_tasks)
-        self.net = AdaIR(decoder=True, num_experts=self.num_experts)
+        self.net = OMoE-Net(decoder=True, num_experts=self.num_experts)
         self.orthogonal_loss = OrthogonalLoss(eps=opt.orthogonal_eps)
         self.orthogonal_loss_weight = opt.orthogonal_loss_weight
         self.guidance_loss_weight = getattr(opt, 'guidance_loss_weight', 0.1)
@@ -385,7 +385,7 @@ def main():
     os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:256'
 
     if opt.wblogger is not None:
-        logger = WandbLogger(project=opt.wblogger, name="AdaIR-Train", offline=True)
+        logger = WandbLogger(project=opt.wblogger, name="OMoE-Net-Train", offline=True)
     else:
         logger = TensorBoardLogger(save_dir="logs/")
 
@@ -441,7 +441,7 @@ def main():
         task_suffix=task_suffix  
     )
 
-    model = AdaIRModel(pretrained_ckpt=opt.pretrained_ckpt, freeze_encoder=opt.freeze_encoder)
+    model = OMoE-NetModel(pretrained_ckpt=opt.pretrained_ckpt, freeze_encoder=opt.freeze_encoder)
 
     trainer = pl.Trainer(
         max_epochs=opt.epochs,
