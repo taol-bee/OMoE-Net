@@ -9,7 +9,7 @@ Yuning Cui, [Syed Waqas Zamir](https://scholar.google.ae/citations?hl=en&user=PO
 <hr />
 
 ## Network Architecture
-<img src = "figs/AdaIR.png"> 
+<img src = "figs/OMoE-Net.png"> 
 
 ## Installation and Data Preparation
 
