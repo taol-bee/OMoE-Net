@@ -62,11 +62,10 @@ To use tiling option while running ```demo.py``` set ```--tile``` option to ```T
 ## Qualitative comparison results
 Performance results of the AdaIR framework trained under the all-in-one setting.
 
-<details>
-<summary><strong>Three Distinct Degradations</strong> (click to expand) </summary>
 
-<img src = "figs/adair3d.PNG"> 
-</details>
+
+<img src = "figs/results1.PNG"> 
+
 <details>
 <summary><strong>Five Distinct Degradations</strong> (click to expand) </summary>
 
