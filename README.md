@@ -59,7 +59,7 @@ To use tiling option while running ```demo.py``` set ```--tile``` option to ```T
 
 
 
-## Results
+## Qualitative comparison results
 Performance results of the AdaIR framework trained under the all-in-one setting.
 
 <details>
