@@ -79,22 +79,5 @@ The visual results can be downloaded [here](https://drive.google.com/drive/folde
 
 
 
-## Citation
-If you use our work, please consider citing:
-~~~
-@inproceedings{cui2025adair,
-title={Ada{IR}: Adaptive All-in-One Image Restoration via Frequency Mining and Modulation},
-author={Yuning Cui and Syed Waqas Zamir and Salman Khan and Alois Knoll and Mubarak Shah and Fahad Shahbaz Khan},
-booktitle={The Thirteenth International Conference on Learning Representations},
-year={2025}
-}
-~~~
 
-
-
-## Contact
-Should you have any questions, please contact yuning.cui@in.tum.de
-
-
-**Acknowledgment:** This code is based on the [PromptIR](https://github.com/va1shn9v/PromptIR) repository. 
 
