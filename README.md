@@ -98,25 +98,3 @@ Should you have any questions, please contact yuning.cui@in.tum.de
 
 **Acknowledgment:** This code is based on the [PromptIR](https://github.com/va1shn9v/PromptIR) repository. 
 
-test-5.5.p为迁移学习+Qwen门控+MOE架构+正交化	 12.2日									
-
-train-1.7.py 为训练迁移学习+MOE架构		1.7日
-
-
-
-训练迁移学习+MOE架构+正交化
-model_MoEandO.py 包含原始MoE架构，未修改门控，用于训练迁移学习+MOE架构+正交化。
-dataset_utils-MoEandO.py 用于训练迁移学习+MOE架构+正交化。
-loss_utils_MoEandO.py
-train_MoEandO.py
-test_MoEandO.py
-options_MoEandO.py
-
-
-训练迁移学习+MOE架构
-model_MoE.py 包含原始MoE架构，未修改门控，用于训练迁移学习+MOE架构。
-dataset_utils-MoE.py 用于训练迁移学习+MOE架构。
-loss_utils_MoE.py
-train_MoE.py
-test_MoE.py
-options_MoE.py
