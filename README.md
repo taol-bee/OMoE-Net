@@ -60,14 +60,7 @@ To use tiling option while running ```demo.py``` set ```--tile``` option to ```T
 
 
 ## Qualitative comparison results
-
 <img src = "figs/results1.PNG"> 
-
-<details>
-<summary><strong>Five Distinct Degradations</strong> (click to expand) </summary>
-
-<img src = "figs/adair5d.PNG"> 
-</details><br>
 
 
 
