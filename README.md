@@ -60,7 +60,7 @@ To use tiling option while running ```demo.py``` set ```--tile``` option to ```T
 
 
 ## Qualitative comparison results
-<img src = "figs/results1.PNG"> 
+<img src = "figs/results1.png"> 
 
 
 
