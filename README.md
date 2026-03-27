@@ -60,7 +60,6 @@ To use tiling option while running ```demo.py``` set ```--tile``` option to ```T
 
 
 ## Qualitative comparison results
-Performance results of the OMoE-Net framework trained under the all-in-one setting.
 
 <img src = "figs/results1.PNG"> 
 
@@ -70,9 +69,7 @@ Performance results of the OMoE-Net framework trained under the all-in-one setti
 <img src = "figs/adair5d.PNG"> 
 </details><br>
 
-The visual results can be downloaded [here](https://drive.google.com/drive/folders/1lsYFumrn3-07Vcl3TZy0dzMMA9yDTpSK?usp=sharing).
 
-<!-- The visual results of the AdaIR model evaluated under the all-in-one setting can be downloaded [here](https://drive.google.com/drive/folders/1Sm-mCL-i4OKZN7lKuCUrlMP1msYx3F6t?usp=sharing) -->
 
 
 
