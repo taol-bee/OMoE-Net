@@ -64,7 +64,7 @@ To use tiling option while running ```demo.py``` set ```--tile``` option to ```T
 
 
 ## Visualization diagram of different degradation characteristics
-<img src = "figs/result2.png"> 
+<img src = "figs/result2.svg"> 
 
 
 
