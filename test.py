@@ -91,12 +91,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--cuda', type=int, default=0)
     parser.add_argument('--de_types', nargs='+', default=['gsn', 'gb', 'sp', 'mb', 'jpeg'],
-                        help='Task list，示例：--de_types gsn jpeg sp')
-    parser.add_argument('--offline_dir', type=str, required=True, help='离线数据目录（含HR和LR子目录）')
-    parser.add_argument('--output_path', type=str, default='OMoE-Net_results/', help='结果保存目录')
-    parser.add_argument('--ckpt_name', type=str, required=True, help='模型权重文件路径，如 ./ckpt/OMoE-Net.ckpt')
-    parser.add_argument('--save_images', action='store_true', help='是否保存输出图像')
-    parser.add_argument('--log_file', type=str, default=None, help='保存结果的txt文件路径') # 新增
+                        help='Task list, example: --de_types gsn jpeg sp')
+    parser.add_argument('--offline_dir', type=str, required=True, help='Offline data directory (contains HR and LR subfolders)')
+    parser.add_argument('--output_path', type=str, default='OMoE-Net_results/', help='Output path for results')
+    parser.add_argument('--ckpt_name', type=str, required=True, help='Model checkpoint path, e.g., ./ckpt/OMoE-Net.ckpt')
+    parser.add_argument('--save_images', action='store_true', help='Save output images')
+    parser.add_argument('--log_file', type=str, default=None, help='Path to save results txt file')
     
     args = parser.parse_args()
 
