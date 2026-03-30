@@ -22,17 +22,17 @@ class OfflineMixedTrainDataset(Dataset):
         self.toTensor = ToTensor()
 
         self.task2id = {
-            'gsn': 0, 'sp': 1, 'jpeg': 2, 
+            'gsn': 0, 'sp': 1, 'jpeg': 2,
             'gb': 3, 'mb': 4
         }
         self.degradation_suffixes = {
-            'gsn': '_gsn.png', 'sp': '_sp.png', 
+            'gsn': '_gsn.png', 'sp': '_sp.png',
             'mb': '_mb.png', 'gb': '_gb.png', 'jpeg': '_jpeg.png'
         }
 
         self.new_tasks = args.de_type if isinstance(args.de_type, list) else [args.de_type]
         self.new_tasks = [t for t in self.new_tasks if t in self.degradation_suffixes]
-        assert self.new_tasks, "传入的--de_type中没有有效的任务类型！"
+        assert self.new_tasks, "No valid task types in --de_type!"
 
         self.old_tasks = []
         if args.pretrained_ckpt:
@@ -40,36 +40,31 @@ class OfflineMixedTrainDataset(Dataset):
             self.old_tasks = [t for t in self.old_tasks if t not in self.new_tasks]
 
         self.all_tasks = self.new_tasks + self.old_tasks
-        print(f"新任务: {self.new_tasks} | 旧任务: {self.old_tasks if self.old_tasks else '无'}")
-
+        print(f"New tasks: {self.new_tasks} | Old tasks: {self.old_tasks if self.old_tasks else 'None'}")
 
         self.task_probs = self._compute_sampling_probs()
-        print(f"任务采样比例: {dict(zip(self.all_tasks, self.task_probs))}")
-
+        print(f"Task sampling probabilities: {dict(zip(self.all_tasks, self.task_probs))}")
 
         self.image_names = self._load_valid_image_names()
         self._check_degraded_files()
 
     def _extract_old_tasks_from_ckpt(self, ckpt_path):
-
         import os
-        
+
         if not ckpt_path:
             return []
 
         filename = os.path.basename(ckpt_path)
-        
         name_no_ext = os.path.splitext(filename)[0]
-        
+
         if name_no_ext.endswith("-last"):
             raw_task_str = name_no_ext[:-5]
         else:
             raw_task_str = name_no_ext.split("-")[0]
 
         potential_tasks = raw_task_str.split('_')
-        
         valid_extracted_tasks = [t for t in potential_tasks if t in self.degradation_suffixes]
-        
+
         return valid_extracted_tasks
 
     def _compute_sampling_probs(self):
@@ -99,7 +94,7 @@ class OfflineMixedTrainDataset(Dataset):
                     break
             if has_valid_degraded:
                 image_names.append(f)
-        assert image_names, f"在{self.gt_dir}中未找到有效的HR图像（或对应退化图不存在）"
+        assert image_names, f"No valid HR images found in {self.gt_dir} (or corresponding degraded files missing)"
         return image_names
 
     def _check_degraded_files(self):
@@ -109,7 +104,7 @@ class OfflineMixedTrainDataset(Dataset):
             for task in self.all_tasks:
                 degraded_path = os.path.join(self.lr_dir, name_no_ext + self.degradation_suffixes[task])
                 if not os.path.exists(degraded_path):
-                    raise FileNotFoundError(f"任务[{task}]的退化图像不存在: {degraded_path}")
+                    raise FileNotFoundError(f"Degraded image for task [{task}] not found: {degraded_path}")
 
     def __len__(self):
         return len(self.image_names)
@@ -127,7 +122,7 @@ class OfflineMixedTrainDataset(Dataset):
         degraded_img = Image.open(degraded_path).convert('RGB')
 
         assert clean_img.size == degraded_img.size, \
-            f"尺寸不匹配: {clean_path} ({clean_img.size}) vs {degraded_path} ({degraded_img.size})"
+            f"Size mismatch: {clean_path} ({clean_img.size}) vs {degraded_path} ({degraded_img.size})"
 
         w, h = clean_img.size
         ps = self.patch_size
