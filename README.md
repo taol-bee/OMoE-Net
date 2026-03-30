@@ -48,7 +48,7 @@ You can test single task or multiple tasks jointly.
 Example Usage: To test on all the degradation types at once, run:
 
 ```
-python test.py --mode 6
+python test.py --ckpt OMoE-Net/gsn-last.ckpt --de_types gsn --offline_dir data/test_bsd68
 ```
 
 
