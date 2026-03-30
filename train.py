@@ -304,7 +304,6 @@ class OMoE-NetModel(pl.LightningModule):
                 proj_dim = 512
                 proj_key = f"proj_matrix_{task_id}"
                 if not hasattr(self, proj_key):
-                    # 注意：register_buffer 可以让它存入 state_dict 但不更新梯度，或者直接用 setattr
                     setattr(self, proj_key, torch.randn(feat_flat.shape[1], proj_dim, device=self.device))
                 
                 feat_flat = torch.matmul(feat_flat, getattr(self, proj_key))
@@ -316,7 +315,6 @@ class OMoE-NetModel(pl.LightningModule):
                 else:
                     degenerate = torch.nn.functional.pad(degenerate, (0, proj_dim - degenerate.shape[1]))
 
-                # 归一化
                 feat_norm = torch.nn.functional.normalize(feat_flat, dim=1)
                 degenerate_norm = torch.nn.functional.normalize(degenerate, dim=1)
                 
@@ -367,7 +365,7 @@ class OMoE-NetModel(pl.LightningModule):
         return [gen_optimizer], [gen_scheduler]
     
     def freeze_encoder_layers(self, freeze_ratio=1.0):
-        print(f"启用冻结机制，冻结比例 = {freeze_ratio}")
+        print(f"Freeze rate = {freeze_ratio}")
         encoder_layers = ['encoder_level1', 'encoder_level2', 'encoder_level3']
         num_to_freeze = int(len(encoder_layers) * freeze_ratio)
         for name, module in self.net.named_children():
