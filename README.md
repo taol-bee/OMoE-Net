@@ -53,15 +53,14 @@ python test.py --ckpt OMoE-Net/gsn-last.ckpt --de_types gsn --offline_dir data/t
 
 
 
-## Qualitative comparison results
+## Results
 <details>
+<summary><strong>Qualitative comparison resultss</strong> (click to expand) </summary>
 <img src = "figs/results3.svg"> 
 
 </details>
-
-
-## Visualization diagram of different degradation characteristics
 <details>
+<summary><strong>Visualization diagram of different degradation characteristics</strong> (click to expand) </summary>
 <img src = "figs/result2.svg"> 
 
 </details>
