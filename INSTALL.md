@@ -7,8 +7,8 @@ Follow these intructions
 
 1. Clone our repository
 ```
-git clone https://github.com/c-yn/AdaIR.git
-cd AdaIR
+
+cd OMoE-Net
 ```
 
 2. Create conda environment
