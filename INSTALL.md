@@ -32,34 +32,34 @@ The full dataset structure is organized as:
 
 ```
 |-- data
-|    |-- Train                    # 训练集 (DIV2K 800张)
-|    |    |-- HR                  # 清晰原图
+|    |-- Train                    
+|    |    |-- HR                  
 |    |    |    |-- 0001.png
 |    |    |    |-- 0002.png
 |    |    |    ...
-|    |    |-- LR_gsn               # 高斯噪声退化
+|    |    |-- LR_gsn               
 |    |    |    |-- 0001.png
 |    |    |    |-- 0002.png
 |    |    |    ...
-|    |    |-- LR_sp                # 椒盐噪声退化
+|    |    |-- LR_sp               
 |    |    |    |-- 0001.png
 |    |    |    |-- 0002.png
 |    |    |    ...
-|    |    |-- LR_jpeg              # JPEG压缩退化
+|    |    |-- LR_jpeg             
 |    |    |    |-- 0001.png
 |    |    |    |-- 0002.png
 |    |    |    ...
-|    |    |-- LR_gb                # 高斯模糊退化
+|    |    |-- LR_gb         
 |    |    |    |-- 0001.png
 |    |    |    |-- 0002.png
 |    |    |    ...
-|    |    |-- LR_mb                # 运动模糊退化
+|    |    |-- LR_mb       
 |    |    |    |-- 0001.png
 |    |    |    |-- 0002.png
 |    |    |    ...
 |    |
-|    |-- test                      # 测试集（4个数据集，结构与Train完全一致）
-|    |    |-- test_bsd68           # BSD68 测试集
+|    |-- test                 
+|    |    |-- test_bsd68          
 |    |    |    |-- HR
 |    |    |    |-- LR_gsn
 |    |    |    |-- LR_sp
@@ -67,7 +67,7 @@ The full dataset structure is organized as:
 |    |    |    |-- LR_gb
 |    |    |    |-- LR_mb
 |    |    |
-|    |    |-- test_urban100        # Urban100 测试集
+|    |    |-- test_urban100   
 |    |    |    |-- HR
 |    |    |    |-- LR_gsn
 |    |    |    |-- LR_sp
@@ -75,7 +75,7 @@ The full dataset structure is organized as:
 |    |    |    |-- LR_gb
 |    |    |    |-- LR_mb
 |    |    |
-|    |    |-- test_kodak24         # Kodak24 测试集
+|    |    |-- test_kodak24    
 |    |    |    |-- HR
 |    |    |    |-- LR_gsn
 |    |    |    |-- LR_sp
@@ -83,7 +83,7 @@ The full dataset structure is organized as:
 |    |    |    |-- LR_gb
 |    |    |    |-- LR_mb
 |    |    |
-|    |    |-- test_cbsd68          # CBSD68 测试集
+|    |    |-- test_cbsd68       
 |    |    |    |-- HR
 |    |    |    |-- LR_gsn
 |    |    |    |-- LR_sp
