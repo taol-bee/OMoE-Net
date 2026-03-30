@@ -33,15 +33,15 @@ After preparing the testing data in ```test/``` directory, place the mode checkp
 ```
 python test.py --ckpt xx/xxxxx.ckpt --de_types [n] --offline_dir data/test_[m]
 ```
---ckpt: Path to the trained model checkpoint file.
+``--ckpt``: Path to the trained model checkpoint file.
 
---de_types [n]: Specify the degradation task(s) for testing.
+``--de_types [n]``: Specify the degradation task(s) for testing.
 
 ``n`` can be one or multiple tasks from the 5 supported degradations: gsn, sp, jpeg, gb, mb.
 
 You can test single task or multiple tasks jointly.
 
---offline_dir data/test_[m]: Specify the test dataset directory.
+``--offline_dir data/test_[m]``: Specify the test dataset directory.
 
 ``m`` is the name of the test set: bsd68, urban100, kodak24, cbsd68.
 
