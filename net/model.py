@@ -484,7 +484,7 @@ class TaskAwareModulation(nn.Module):
     def forward(self, features, task_embed):
         x = self.relu(self.fc1(task_embed))  # [B, feat_channels//reduction] → [B, 96//16=6]
         x = self.fc2(x)  # [B, 2*feat_channels] → [B, 192]（96*2）
-        scale, bias = x.chunk(2, dim=1)  # 各为 [B, 96]
+        scale, bias = x.chunk(2, dim=1)
         scale = scale.unsqueeze(-1).unsqueeze(-1)
         bias = bias.unsqueeze(-1).unsqueeze(-1)
         return features * (1 + scale) + bias
@@ -590,7 +590,7 @@ class OMoE-Net(nn.Module):
             task_feat = self.task_embed(task_ids)  # [B, C, H, W]
             if task_feat.shape[-2:] != inp_enc_level1.shape[-2:]:
                 task_feat = F.interpolate(task_feat, size=inp_enc_level1.shape[-2:], mode='bilinear', align_corners=False)
-            inp_enc_level1 = inp_enc_level1 + task_feat  # 加法注入
+            inp_enc_level1 = inp_enc_level1 + task_feat
 
         out_enc_level1 = self.encoder_level1(inp_enc_level1)
         inp_enc_level2 = self.down1_2(out_enc_level1)
