@@ -8,7 +8,7 @@
 <hr />
 
 ## Network Architecture
-<img src = "figs/OMoE-Net.svg"> 
+<img src = "figs/OMoE-Nt.svg"> 
 
 ## Installation and Data Preparation
 
