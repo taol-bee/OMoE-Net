@@ -65,8 +65,41 @@ python test.py --ckpt OMoE-Net/gsn-last.ckpt --de_types gsn --offline_dir data/t
 
 </details>
 
+<details>
+<summary><strong>Table1</strong> (click to expand) </summary>
+<img src = "figs/table1.png"> 
 
+</details>
 
+<details>
+<summary><strong>Table2</strong> (click to expand) </summary>
+<img src = "figs/table2.png"> 
+
+</details>
+
+<details>
+<summary><strong>Table3</strong> (click to expand) </summary>
+<img src = "figs/table3.png"> 
+
+</details>
+
+<details>
+<summary><strong>Table4</strong> (click to expand) </summary>
+<img src = "figs/table4.png"> 
+
+</details>
+
+<details>
+<summary><strong>Table5</strong> (click to expand) </summary>
+<img src = "figs/table5.png"> 
+
+</details>
+
+<details>
+<summary><strong>Table6</strong> (click to expand) </summary>
+<img src = "figs/table6.png"> 
+
+</details>
 
 
 
