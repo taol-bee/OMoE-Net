@@ -8,7 +8,7 @@
 <hr />
 
 ## Network Architecture
-<img src="https://github.com/taol-bee/OMoE-Net/raw/main/figs/OMoE-Net.svg">
+<img src="https://github.com/taol-bee/OMoE-Net/figs/OMoE-Net.svg">
 
 ## Installation and Data Preparation
 
@@ -56,48 +56,48 @@ python test.py --ckpt OMoE-Net/gsn-last.ckpt --de_types gsn --offline_dir data/t
 ## Results
 <details>
 <summary><strong>Qualitative comparison resultss</strong> (click to expand) </summary>
-<img src="https://github.com/taol-bee/OMoE-Net/raw/main/figs/results3.svg"> 
+<img src="https://github.com/taol-bee/OMoE-Net/figs/results3.svg"> 
 
 </details>
 <details>
 <summary><strong>Visualization diagram of different degradation characteristics</strong> (click to expand) </summary>
-<img src="https://github.com/taol-bee/OMoE-Net/raw/main/figs/result2.svg"> 
+<img src="https://github.com/taol-bee/OMoE-Net/figs/result2.svg"> 
 
 </details>
 
 <details>
 <summary><strong>Table1</strong> (click to expand) </summary>
-<img src="https://github.com/taol-bee/OMoE-Net/raw/main/figs/table1.png"> 
+<img src="https://github.com/taol-bee/OMoE-Net/figs/table1.png"> 
 
 </details>
 
 <details>
 <summary><strong>Table2</strong> (click to expand) </summary>
-<img src="https://github.com/taol-bee/OMoE-Net/raw/main/figs/table2.png"> 
+<img src="https://github.com/taol-bee/OMoE-Net/figs/table2.png"> 
 
 </details>
 
 <details>
 <summary><strong>Table3</strong> (click to expand) </summary>
-<img src="https://github.com/taol-bee/OMoE-Net/raw/main/figs/table3.png">
+<img src="https://github.com/taol-bee/OMoE-Net/figs/table3.png">
 
 </details>
 
 <details>
 <summary><strong>Table4</strong> (click to expand) </summary>
-<img src="https://github.com/taol-bee/OMoE-Net/raw/main/figs/table4.png">
+<img src="https://github.com/taol-bee/OMoE-Net/figs/table4.png">
 
 </details>
 
 <details>
 <summary><strong>Table5</strong> (click to expand) </summary>
-<img src="https://github.com/taol-bee/OMoE-Net/raw/main/figs/table5.png"> 
+<img src="https://github.com/taol-bee/OMoE-Net/figs/table5.png"> 
 
 </details>
 
 <details>
 <summary><strong>Table6</strong> (click to expand) </summary>
-<img src="https://github.com/taol-bee/OMoE-Net/raw/main/figs/table6.png"> 
+<img src="https://github.com/taol-bee/OMoE-Net/figs/table6.png"> 
 
 </details>
 
