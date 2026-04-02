@@ -61,7 +61,7 @@ python test.py --ckpt OMoE-Net/gsn-last.ckpt --de_types gsn --offline_dir data/t
 </details>
 <details>
 <summary><strong>Visualization diagram of different degradation characteristics</strong> (click to expand) </summary>
-<img src="https://github.com/taol-bee/OMoE-Net/figs/result2.svg"> 
+<img src="https://github.com/taol-bee/OMoE-Net/figs/results2.png"> 
 
 </details>
 
