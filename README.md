@@ -58,12 +58,14 @@ python test.py --ckpt OMoE-Net/gsn-last.ckpt --de_types gsn --offline_dir data/t
 <details>
 <summary><strong>Qualitative comparison results</strong> (click to expand)</summary>
 
-<img src="./figs/results3.svg" width="100%">
+<img src="./figs/results3.png" width="100%">
 
 </details>
 
 <details>
-<summary><strong>Visualization diagram of different degradation characteristics</strong> (click to expand)</summary>
+<summary><strong>Feature distributions before and after introducing orthogonal and routing-guidance losses</strong> (click to expand)</summary>
+
+<img src="./figs/results1.png" width="100%">
 
 <img src="./figs/results2.png" width="100%">
 
