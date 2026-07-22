@@ -8,7 +8,7 @@
 <hr />
 
 ## Network Architecture
-<img src="https://github.com/taol-bee/OMoE-Net/figs/OMoE-Net.svg">
+<img src="https://github.com/taol-bee/OMoE-Net/figs/OMoE-Net.pdf">
 
 ## Installation and Data Preparation
 
